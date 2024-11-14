@@ -7,7 +7,10 @@ import datetime
 import os
 import config
 import vectorDB
-import chatModule
+from dotenv import load_dotenv
+
+from document_loader import load_documents
+from chatbot_logic import create_chatbot
 
 app = Flask(__name__)
 
@@ -19,6 +22,28 @@ app.config.update(
 
 jwt = JWTManager(app)
 jwt_blacklist = set()
+
+################### initialize chatbot ###########################
+
+# 환경 변수 로드 (OPENAI_API_KEY, PINECONE_API_KEY 등)
+load_dotenv()
+
+# 벡터 스토어 로드 또는 생성
+persist_directory = 'vectorstore'
+print(f"벡터 스토어 디렉토리: {persist_directory}")
+if os.path.exists(persist_directory):
+    # 기존 벡터 스토어 로드
+    from langchain.vectorstores import Chroma
+    from langchain.embeddings import OpenAIEmbeddings
+    embeddings = OpenAIEmbeddings()
+    vectorstore = Chroma(persist_directory=persist_directory, embedding_function=embeddings)
+else:
+    # 문서 로드 및 벡터 스토어 생성
+    print(f"벡터 스토어를 생성합니다.")
+    documents = load_documents('documents')  # 문서가 저장된 디렉토리
+    vectorstore = create_vectorstore(documents, persist_directory)
+# 챗봇 생성
+qa_chain = create_chatbot(vectorstore)
 
 ################### DB ############################
 def init_db():
@@ -387,18 +412,19 @@ def delete_notice():
     return jsonify({'msg': 'delete success'}), 200
 
 
-@app.route('/chat/{word}', methods=['GET'])
-@jwt_required()
+@app.route('/chat', methods=['POST'])
 def get_chat():
-    user_id = get_jwt_identity()
     input_data = request.get_json()
     word = input_data['word']
-    if user_id is None:
-        return jsonify({'msg': 'missing user id'}), 400
     if word is None:
         return jsonify({'msg': 'missing word'}), 400
-    chat_response = chatModule.get_chat_response(word)
-    return jsonify({'msg': chat_response}), 200
+    from langchain.callbacks import get_openai_callback
+    with get_openai_callback() as cb:
+        response = qa_chain.run(word)
+        # 토큰 사용량 출력 (옵션)
+        print(f"토큰 사용량: {cb.total_tokens} (프롬프트: {cb.prompt_tokens}, 응답: {cb.completion_tokens})")
+
+    return jsonify({'response': response}), 200
 
 ############## Flask App #####################
 app.config.from_object(config)
