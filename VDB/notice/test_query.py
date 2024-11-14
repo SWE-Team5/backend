@@ -50,12 +50,12 @@ class NoticeSearcher:
             logger.error(f"Error during search: {e}")
             raise
 
-def pinecone_main():
+def pinecone_main(keyword):
     try:
         searcher = NoticeSearcher()
         
         # test query
-        test_queries = "소프트웨어학과 졸업 관련 공지 있어?"
+        test_queries = keyword
             # "현재 신청할 수 있는 장학금이 있을까요?"
             # "기숙사 관련 공지가 있어?"
             # "근로장학 공지사항을 알려줘"

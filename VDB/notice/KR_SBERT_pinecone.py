@@ -25,7 +25,7 @@ class NoticeVectorDB:
         self.index_name = index_name
         
         # GPU 사용 가능시 GPU 사용
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = cpu
         logger.info(f"Using device: {self.device}")
         
         # SBERT 모델 로드

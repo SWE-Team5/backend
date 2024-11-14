@@ -14,7 +14,6 @@ def load_documents(directory):
             loader = TextLoader(filepath, encoding='utf-8')
             documents.extend(loader.load())
     return documents
-
 def create_vectorstore(documents, persist_directory):
     # 텍스트 분할
     text_splitter = RecursiveCharacterTextSplitter(

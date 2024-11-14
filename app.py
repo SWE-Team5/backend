@@ -4,13 +4,16 @@ from flask_jwt_extended import *
 from flask import g
 import sqlite3
 import datetime
-import os
+import os, sys
 import config
 import vectorDB
+
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from dotenv import load_dotenv
 
-from document_loader import load_documents
+from document_loader import load_documents, create_vectorstore
 from chatbot_logic import create_chatbot
+from VDB.notice.test_query import pinecone_main
 
 app = Flask(__name__)
 
@@ -28,20 +31,13 @@ jwt_blacklist = set()
 # 환경 변수 로드 (OPENAI_API_KEY, PINECONE_API_KEY 등)
 load_dotenv()
 
-# 벡터 스토어 로드 또는 생성
+
+# 문서 로드 및 벡터 스토어 생성 또는 업데이트
+documents = load_documents('documents')  # 문서가 저장된 디렉토리
 persist_directory = 'vectorstore'
-print(f"벡터 스토어 디렉토리: {persist_directory}")
-if os.path.exists(persist_directory):
-    # 기존 벡터 스토어 로드
-    from langchain.vectorstores import Chroma
-    from langchain.embeddings import OpenAIEmbeddings
-    embeddings = OpenAIEmbeddings()
-    vectorstore = Chroma(persist_directory=persist_directory, embedding_function=embeddings)
-else:
-    # 문서 로드 및 벡터 스토어 생성
-    print(f"벡터 스토어를 생성합니다.")
-    documents = load_documents('documents')  # 문서가 저장된 디렉토리
-    vectorstore = create_vectorstore(documents, persist_directory)
+
+# 벡터 스토어 생성 또는 업데이트
+vectorstore = create_vectorstore(documents, persist_directory)
 # 챗봇 생성
 qa_chain = create_chatbot(vectorstore)
 
@@ -88,8 +84,7 @@ def teardown_request(exception):
 def connect_db():
     return sqlite3.connect(app.config['DATABASE'])
 
-############################################################
-
+##############################################################
 @app.route('/')
 def home():
     load_db()
@@ -103,16 +98,16 @@ def test():
     print(current_user)
     return render_template('test.html')
 
-def update_notice_keyword_user(user_id, keyword_id):
+def update_notice_keyword_user(user_id, keyword_id, keyword_text):
     # 외부 함수에서 공지 목록을 가져옴
-    notice_list = vectorDB.get_notice()
-    
+    notice_list = pinecone_main(keyword_text)
+    print(notice_list)
     # DB에서 해당 유저와 키워드에 대한 최신 공지 ID를 가져옴
     user_notice = g.db.execute(
         'SELECT MAX(noti_id) AS max_noti_id FROM user_notifications WHERE user_id = ? AND keyword_id = ?',
         (user_id, keyword_id)
     ).fetchone()
-    
+    print(user_notice['max_noti_id'])
     max_noti_id = user_notice['max_noti_id'] if user_notice and user_notice['max_noti_id'] is not None else 0
     
     # 업데이트할 새로운 공지를 필터링 (max_noti_id보다 큰 것들만)
@@ -155,7 +150,7 @@ def login():
     if get_user_data_from_db is None:
         return jsonify({'msg': 'login fail'}), 401
     else:
-        if user_pw == get_user_data_from_db[1]:
+        if user_pw == get_user_data_from_db[9]:
             access_token = create_access_token(identity=user_id, expires_delta=datetime.timedelta(minutes=10))
             return jsonify({'msg': 'login success', 'access_token': access_token}), 200
         else:
@@ -221,16 +216,15 @@ def get_users_notices():
         return jsonify({'msg': 'missing user id'}), 400
     
     # 모든 키워드를 가져오기 위해 fetchall() 사용
-    keywords = g.db.execute('SELECT id, keyword FROM user_keywords WHERE user_id = ? isCalendar = false', (user_id,)).fetchall()
+    keywords = g.db.execute('SELECT id, keyword FROM user_keywords WHERE user_id = ? AND isCalendar = false', (user_id,)).fetchall()
     if not keywords:
         return jsonify({'msg': 'no keyword'}), 200
-
     # 각 키워드에 대해 반복하면서 데이터 추가
     for keyword in keywords:
         # 여기서 keyword는 튜플(id, keyword, isCalendar)이므로 인덱스로 접근
-        keyword_id = keyword['id']
-        keyword_text = keyword['keyword']
-        is_new |= update_notice_keyword_user(user_id, keyword_id)
+        keyword_id = keyword[0]
+        keyword_text = keyword[1]
+        is_new |= update_notice_keyword_user(user_id, keyword_id, keyword_text)
         data.append({'keyword': keyword_text, 'keywordid': keyword_id, 'new': is_new})
     
     return jsonify({'count': len(keywords), 'data': data}), 200
@@ -250,7 +244,7 @@ def register_keyword():
     
     # user_keywords 테이블에 해당 유저와 키워드를 추가
     g.db.execute(
-        'INSERT INTO user_keywords (user_id, keywords, isCalendar) VALUES (?, ?, ?)',
+        'INSERT INTO user_keywords (user_id, keyword, isCalendar) VALUES (?, ?, ?)',
         (user_id, keyword, 0)
     )
     
