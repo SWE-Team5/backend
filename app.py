@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 
 from document_loader import load_documents, create_vectorstore
 from chatbot_logic import create_chatbot
+from pinecone_to_txt import fetch_data_from_pinecone
 from VDB.notice.test_query import pinecone_main
 
 app = Flask(__name__)
@@ -31,6 +32,8 @@ jwt_blacklist = set()
 # 환경 변수 로드 (OPENAI_API_KEY, PINECONE_API_KEY 등)
 load_dotenv()
 
+# 파인콘에서 데이터 가져오기
+fetch_data_from_pinecone()
 
 # 문서 로드 및 벡터 스토어 생성 또는 업데이트
 documents = load_documents('documents')  # 문서가 저장된 디렉토리
