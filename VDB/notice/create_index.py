@@ -1,9 +1,12 @@
 from pinecone import Pinecone, ServerlessSpec
+import os
 
 # for sentence-transformers/xlm-r-100langs-bert-base-nli-stsb
 
+PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+
 def update_index(index_name, dimension, metric):
-    pc = Pinecone(api_key="1734fc56-9964-4232-a412-50e211980310")
+    pc = Pinecone(api_key=PINECONE_API_KEY)
 
     pc.delete_index(index_name)
 

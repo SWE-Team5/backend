@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 SERVICE_ACCOUNT_FILE = 'swengineer-e9e6a19f0a3d.json'
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 MODEL_NAME = 'snunlp/KR-SBERT-V40K-klueNLI-augSTS'
-PINECONE_API_KEY = "1734fc56-9964-4232-a412-50e211980310"
+PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = "skku-notice"
 
 class NoticeVectorDB:

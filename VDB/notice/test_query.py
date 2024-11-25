@@ -2,12 +2,13 @@ from pinecone import Pinecone
 from sentence_transformers import SentenceTransformer
 import logging
 import torch
+import os
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 FINETUNED_MODEL_PATH = 'finetuned-kr-sbert-notice'  # fine-tuning model path
-PINECONE_API_KEY = "1734fc56-9964-4232-a412-50e211980310"
+PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = "skku-notice"
 
 class NoticeSearcher:
