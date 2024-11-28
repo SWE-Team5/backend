@@ -63,15 +63,15 @@ def pinecone_main(keyword):
         
         ret = searcher.find_similar_notices(test_queries)
         
-        for match in ret["matches"]:
-            print(f"제목: {match['metadata']['title']}")
-            print(f"부서: {match['metadata']['name']}")
-            print(f"날짜: {match['metadata']['notice_date']}")
-            print(f"URL: {match['metadata']['url']}")
-            print(f"유사도: {match['score']:.4f}")
-            print("-" * 50)
+        # for match in ret["matches"]:
+        #     print(f"제목: {match['metadata']['title']}")
+        #     print(f"부서: {match['metadata']['name']}")
+        #     print(f"날짜: {match['metadata']['notice_date']}")
+        #     print(f"URL: {match['metadata']['url']}")
+        #     print(f"유사도: {match['score']:.4f}")
+        #     print("-" * 50)
             
-        print("\n" + "="*70 + "\n")
+        # print("\n" + "="*70 + "\n")
         return ret
             
     except Exception as e:

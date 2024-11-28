@@ -33,7 +33,7 @@ jwt_blacklist = set()
 load_dotenv()
 
 # 파인콘에서 데이터 가져오기
-fetch_data_from_pinecone()
+#fetch_data_from_pinecone()
 
 # 문서 로드 및 벡터 스토어 생성 또는 업데이트
 documents = load_documents('documents')  # 문서가 저장된 디렉토리
@@ -104,17 +104,15 @@ def test():
 def update_notice_keyword_user(user_id, keyword_id, keyword_text):
     # 외부 함수에서 공지 목록을 가져옴
     notice_list = pinecone_main(keyword_text)
-    print(notice_list)
     # DB에서 해당 유저와 키워드에 대한 최신 공지 ID를 가져옴
     user_notice = g.db.execute(
         'SELECT MAX(noti_id) AS max_noti_id FROM user_notifications WHERE user_id = ? AND keyword_id = ?',
         (user_id, keyword_id)
     ).fetchone()
-    print(user_notice['max_noti_id'])
-    max_noti_id = user_notice['max_noti_id'] if user_notice and user_notice['max_noti_id'] is not None else 0
+    max_noti_id = notice_list['matches'][0]['id'] if notice_list['matches'][0] is not None else 0
     
     # 업데이트할 새로운 공지를 필터링 (max_noti_id보다 큰 것들만)
-    new_notices = [notice for notice in notice_list if notice['id'] > max_noti_id]
+    new_notices = [notice for notice in notice_list['matches'] if notice['id'] > max_noti_id]
     
     # 새로운 공지가 없다면 False 반환
     if not new_notices:
@@ -154,7 +152,8 @@ def login():
         return jsonify({'msg': 'login fail'}), 401
     else:
         if user_pw == get_user_data_from_db[9]:
-            access_token = create_access_token(identity=user_id, expires_delta=datetime.timedelta(minutes=10))
+            print(get_user_data_from_db[0])
+            access_token = create_access_token(identity=get_user_data_from_db[0], expires_delta=datetime.timedelta(minutes=10))
             return jsonify({'msg': 'login success', 'access_token': access_token}), 200
         else:
             return jsonify({'msg': 'login fail'}), 401
@@ -215,6 +214,9 @@ def get_users_notices():
     is_new = False
     data = []
     user_id = get_jwt_identity()
+    print("#"*50)
+    print(user_id)
+    print("#"*50)
     if user_id is None:
         return jsonify({'msg': 'missing user id'}), 400
     
@@ -224,6 +226,7 @@ def get_users_notices():
         return jsonify({'msg': 'no keyword'}), 200
     # 각 키워드에 대해 반복하면서 데이터 추가
     for keyword in keywords:
+        print(keyword, keywords)
         # 여기서 keyword는 튜플(id, keyword, isCalendar)이므로 인덱스로 접근
         keyword_id = keyword[0]
         keyword_text = keyword[1]
@@ -295,7 +298,7 @@ def get_users_scrap_notices():
     
     return jsonify({'count': len(data), 'data': data}), 200
 
-@app.route('/user/{noticeid}', methods=['POST'])
+@app.route('/user/noti/<int:noticeid>', methods=['POST'])
 @jwt_required()
 def scrap_notice():
     user_id = get_jwt_identity()
@@ -319,7 +322,7 @@ def scrap_notice():
     # 스크랩 성공 메시지 반환
     return jsonify({'msg': 'scrap success'}), 200 
 
-@app.route('/user/{keyword_id}', methods=['GET'])
+@app.route('/user/<int:keyword_id>', methods=['GET'])
 @jwt_required()
 def get_notice_list(keyword_id):
     user_id = get_jwt_identity()
@@ -328,7 +331,7 @@ def get_notice_list(keyword_id):
     
     # user_notifications 테이블에서 해당 유저와 키워드에 대한 공지 목록을 가져옴
     notices = g.db.execute(
-        'SELECT noti_id, read, scrap FROM user_notifications WHERE user_id = ? AND keyword_id = ?',
+        'SELECT noti_id, is_read, scrap FROM user_notifications WHERE user_id = ? AND keyword_id = ?',
         (user_id, keyword_id)
     ).fetchall()
     
@@ -359,7 +362,7 @@ def get_notice_list(keyword_id):
     
     return jsonify({'count': len(data), 'data': data}), 200
 
-@app.route('/user/{keywordid}', methods=['DELETE'])
+@app.route('/user/<int:keywordid>', methods=['DELETE'])
 @jwt_required()
 def delete_keyword():
     user_id = get_jwt_identity()
@@ -386,7 +389,7 @@ def delete_keyword():
     return jsonify({'msg': 'delete success'}), 200
 
 
-@app.route('/user/{noticeid}', methods=['DELETE'])
+@app.route('/user/<int:noticeid>', methods=['DELETE'])
 @jwt_required()
 def delete_notice():
     user_id = get_jwt_identity()

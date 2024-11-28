@@ -1,7 +1,7 @@
 # pinecone_to_txt.py
 
 import os
-import pinecone
+from pinecone import Pinecone
 from dotenv import load_dotenv
 
 def fetch_data_from_pinecone():
@@ -9,17 +9,17 @@ def fetch_data_from_pinecone():
     load_dotenv()
 
     # Pinecone 초기화
-    pinecone.init(
+    pc = Pinecone(
         api_key=os.environ.get("PINECONE_API_KEY"),
         environment=os.environ.get("PINECONE_ENVIRONMENT")
     )
 
-    index_name = os.environ.get("PINECONE_INDEX_NAME")
+    index_name = "skku-notice"
 
-    if index_name not in pinecone.list_indexes():
+    if index_name not in pc.list_indexes():
         raise ValueError(f"Pinecone에 '{index_name}' 인덱스가 존재하지 않습니다.")
 
-    index = pinecone.Index(index_name)
+    index = pc.Index(index_name)
 
     # 모든 벡터를 가져오는 로직 구현
     # (여기서는 예시로 메타데이터 필터를 사용하여 벡터를 가져옴)

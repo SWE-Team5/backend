@@ -56,3 +56,4 @@ CREATE TABLE notifications (
   title VARCHAR(255) NOT NULL,
   noti_url VARCHAR(255) NOT NULL
 );
+
