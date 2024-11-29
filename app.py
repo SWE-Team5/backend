@@ -7,6 +7,7 @@ import datetime
 import os, sys
 import config
 import vectorDB
+from flask_cors import CORS
 
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from dotenv import load_dotenv
@@ -17,7 +18,7 @@ from pinecone_to_txt import fetch_data_from_pinecone
 from VDB.notice.test_query import pinecone_main
 
 app = Flask(__name__)
-
+CORS(app)
 
 app.config.update(
     Debug=True,
@@ -122,8 +123,8 @@ def update_notice_keyword_user(user_id, keyword_id, keyword_text):
     for notice in new_notices:
         # add to notification table also.
         g.db.execute(
-            'INSERT INTO notice (id, title, url) VALUES (?, ?, ?)',
-            (notice['id'], notice['title'], notice['url'])
+            'INSERT INTO notifications (title, url) VALUES ( ?, ?)',
+            (notice['title'], notice['url'])
         )
         g.db.execute(
             'INSERT INTO user_notifications (user_id, noti_id, keyword_id, read, scrap) VALUES (?, ?, ?, ?, ?)',
@@ -140,13 +141,11 @@ def update_notice_keyword_user(user_id, keyword_id, keyword_text):
 
 @app.route('/user/login', methods=['POST'])
 def login():
-
     input_data = request.get_json()
     user_id = input_data['id']
     user_pw = input_data['pw']
-    
     #get_user_data_from_db = ["admin", "admin"]
-    get_user_data_from_db = g.db.execute('select * from user where user_id = ?', (user_id,)).fetchone()
+    get_user_data_from_db = g.db.execute('select * from user where student_id = ?', (user_id,)).fetchone()
 
     if get_user_data_from_db is None:
         return jsonify({'msg': 'login fail'}), 401
@@ -188,6 +187,7 @@ def register():
     return jsonify({'msg': 'register success'}), 200
 
 @app.route('/user/register', methods=['PATCH'])
+@jwt_required()
 def update_user_info():
     input_data = request.get_json()
     if 'user_id' not in input_data:
@@ -253,12 +253,16 @@ def register_keyword():
         'INSERT INTO user_keywords (user_id, keyword, isCalendar) VALUES (?, ?, ?)',
         (user_id, keyword, 0)
     )
-    
+    cursor = g.db.execute(
+        'SELECT id FROM user_keywords WHERE user_id = ? AND keyword = ?',
+        (user_id, keyword)
+    )
+    keyword_id = cursor.fetchone()[0]
     # 변경 사항을 DB에 커밋
     g.db.commit()
     
     # 추가 성공 메시지 반환
-    return jsonify({'msg': 'regist keyword success'}), 200
+    return jsonify({'msg': 'regist keyword success', 'keyword_id':cursor}), 200
 
 @app.route('/user/scrap', methods=['GET'])
 @jwt_required()
@@ -413,6 +417,7 @@ def delete_notice():
 
 
 @app.route('/chat', methods=['POST'])
+@jwt_required()
 def get_chat():
     input_data = request.get_json()
     word = input_data['word']
