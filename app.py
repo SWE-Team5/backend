@@ -229,6 +229,7 @@ def get_events_notices_list():
     data = []
 
     for notice in matched_notices:
+        print(notice['metadata']['title'], notice['id'])
         # Check if the notice already exists in the notifications table
         existing_notice = g.db.execute(
             'SELECT * FROM notifications WHERE noti_id = ?',
@@ -246,6 +247,17 @@ def get_events_notices_list():
                 (user_id, notice['id'], None, 0, 0)
             )
             g.db.commit()
+        else:
+            existing_user_notice = g.db.execute(
+                'SELECT * FROM user_notifications WHERE user_id = ? AND noti_id = ?',
+                (user_id, notice['id'])
+            ).fetchone()
+            if not existing_user_notice:
+                g.db.execute(
+                    'INSERT INTO user_notifications (user_id, noti_id, keyword_id, is_read, scrap) VALUES (?, ?, ?, ?, ?)',
+                    (user_id, notice['id'], None, 0, 0)
+                )
+                g.db.commit()
         
         data.append({
             'noti_id': notice['id'],
@@ -360,30 +372,16 @@ def scrap_notice(noticeid):
         return jsonify({'msg': 'missing user id'}), 400
     if notice_id is None:
         return jsonify({'msg': 'missing notice id'}), 400
-    
-    # user_notifications 테이블에서 해당 유저와 공지의 스크랩 여부를 변경
-    existing_notice = g.db.execute(
-        'SELECT 1 FROM notifications WHERE noti_id = ?',
-        (notice_id,)
-    ).fetchone()
-    
-    if not existing_notice:
-        print("#"*24)
-        g.db.execute(
-            'INSERT INTO notifications (title, noti_url, noti_id) VALUES (?, ?, ?)',
-            (input_data['title'], input_data['url'], notice_id)
-        )
-    
+
+        
     existing_user_notice = g.db.execute(
         'SELECT 1 FROM user_notifications WHERE user_id = ? AND noti_id = ?',
         (user_id, notice_id)
     ).fetchone()
     
     if not existing_user_notice:
-        g.db.execute(
-            'INSERT INTO user_notifications (user_id, noti_id, keyword_id, is_read, scrap) VALUES (?, ?, ?, ?, ?)',
-            (user_id, notice_id, None, 0, is_scrap)
-        )
+        return jsonify({'msg': 'notice not found'}), 400
+        
     g.db.execute(
         'UPDATE user_notifications SET scrap = ? WHERE user_id = ? AND noti_id = ?',
         (is_scrap, user_id, notice_id)
@@ -418,7 +416,7 @@ def read_notice(noticeid):
     
     g.db.execute(
         'UPDATE user_notifications SET is_read = ? WHERE user_id = ? AND noti_id = ?',
-        (is_read, user_id, notice_id)
+        (1, user_id, notice_id)
     )
     
     # 변경 사항을 DB에 커밋
