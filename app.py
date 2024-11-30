@@ -327,15 +327,15 @@ def get_users_scrap_notices():
     # 각 스크랩한 공지의 제목과 URL을 가져와 리스트에 추가
     data = []
     for notice in notices:
-        noti_id = notice['noti_id']
+        noti_id = notice[0]
         title_row = g.db.execute(
-            'SELECT title, url FROM notice WHERE id = ?',
+            'SELECT title, noti_url FROM notifications WHERE noti_id = ?',
             (noti_id,)
         ).fetchone()
         
         # 제목과 URL이 없는 경우 기본값 설정 (예외 처리)
-        title = title_row['title'] if title_row else 'No title available'
-        url = title_row['url'] if title_row else 'No URL available'
+        title = title_row[0] if title_row else 'No title available'
+        url = title_row[1] if title_row else 'No URL available'
         
         # 결과 리스트에 추가
         data.append({
@@ -348,9 +348,9 @@ def get_users_scrap_notices():
 
 @app.route('/user/noti/<int:noticeid>', methods=['POST'])
 @jwt_required()
-def scrap_notice():
+def scrap_notice(noticeid):
     user_id = get_jwt_identity()
-    notice_id = request.view_args['noticeid']
+    notice_id = noticeid
     input_data = request.get_json()
     is_scrap = input_data['scrap']
     if user_id is None:
@@ -359,6 +359,7 @@ def scrap_notice():
         return jsonify({'msg': 'missing notice id'}), 400
     
     # user_notifications 테이블에서 해당 유저와 공지의 스크랩 여부를 변경
+    
     g.db.execute(
         'UPDATE user_notifications SET scrap = ? WHERE user_id = ? AND noti_id = ?',
         (is_scrap, user_id, notice_id)

@@ -41,7 +41,7 @@ CREATE TABLE user_notifications (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,
   noti_id INTEGER NOT NULL UNIQUE,
-  keyword_id INTEGER NOT NULL,
+  keyword_id INTEGER NULL,
   is_read INTEGER NOT NULL,  -- BOOLEAN 대체 (0과 1)
   scrap INTEGER NOT NULL,  -- BOOLEAN 대체 (0과 1)
   FOREIGN KEY (user_id) REFERENCES user (id),
