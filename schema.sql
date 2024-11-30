@@ -40,12 +40,12 @@ DROP TABLE IF EXISTS user_notifications;
 CREATE TABLE user_notifications (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,
-  noti_id INTEGER NOT NULL,
+  noti_id INTEGER NOT NULL UNIQUE,
   keyword_id INTEGER NOT NULL,
   is_read INTEGER NOT NULL,  -- BOOLEAN 대체 (0과 1)
   scrap INTEGER NOT NULL,  -- BOOLEAN 대체 (0과 1)
   FOREIGN KEY (user_id) REFERENCES user (id),
-  FOREIGN KEY (noti_id) REFERENCES notifications (id)
+  FOREIGN KEY (noti_id) REFERENCES notifications (id),
   FOREIGN KEY (keyword_id) REFERENCES user_keywords (id)
 );
 
@@ -54,6 +54,30 @@ DROP TABLE IF EXISTS notifications;
 CREATE TABLE notifications (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   title VARCHAR(255) NOT NULL,
-  noti_url VARCHAR(255) NOT NULL
+  noti_url VARCHAR(255) NOT NULL,
+  noti_id INTEGER NOT NULL
 );
 
+
+-- 사용자 관심 키워드 테이블에 한글 키워드 더미 데이터 삽입
+INSERT INTO user_keywords (user_id, keyword, isCalendar) VALUES
+(1, '컴퓨터공학', 1),
+(1, '인공지능 연구', 0),
+(2, '수학', 1),
+(2, '통계학', 0),
+(3, '생물학', 1),
+(3, '유전학', 0),
+(4, '물리학', 1),
+(4, '양자역학', 0),
+(5, '문학', 1),
+(5, '창작 글쓰기', 0),
+(6, '화학', 1),
+(6, '유기화학', 0),
+(7, '경제학', 1),
+(7, '재무', 0),
+(8, '역사학', 1),
+(8, '고고학', 0),
+(9, '공학', 1),
+(9, '기계공학', 0),
+(10, '미술', 1),
+(10, '사진술', 0);

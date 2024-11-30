@@ -68,10 +68,6 @@ if __name__ == "__main__":
     
     df = read_spreadsheet(spreadsheet_id, range_name)
     
-    print(df.columns)
-    print(df.head())
-    print(df.info())
-    
     print("data loaded")
     upload_to_pinecone(df, PINECONE_INDEX_NAME)
     print("data uploaded")

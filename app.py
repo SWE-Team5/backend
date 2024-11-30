@@ -105,29 +105,34 @@ def test():
 def update_notice_keyword_user(user_id, keyword_id, keyword_text):
     # 외부 함수에서 공지 목록을 가져옴
     notice_list = pinecone_main(keyword_text)
-    # DB에서 해당 유저와 키워드에 대한 최신 공지 ID를 가져옴
+    new_notices_before_process = notice_list["matches"]
+    
     user_notice = g.db.execute(
-        'SELECT MAX(noti_id) AS max_noti_id FROM user_notifications WHERE user_id = ? AND keyword_id = ?',
+        'SELECT noti_id FROM user_notifications WHERE user_id = ? AND keyword_id = ?',
         (user_id, keyword_id)
-    ).fetchone()
-    max_noti_id = notice_list['matches'][0]['id'] if notice_list['matches'][0] is not None else 0
+    ).fetchall()
     
-    # 업데이트할 새로운 공지를 필터링 (max_noti_id보다 큰 것들만)
-    new_notices = [notice for notice in notice_list['matches'] if notice['id'] > max_noti_id]
+    existing_notices = [notice[0] for notice in user_notice]
     
+    # 새로운 공지가 이미 존재하는 경우 필터링
+    new_notices = []
+    for notice in new_notices_before_process:
+        if int(notice['id']) not in existing_notices:
+            new_notices.append(notice)
+
+
     # 새로운 공지가 없다면 False 반환
     if not new_notices:
         return False
     
-    # 새로운 공지를 user_notifications 테이블에 추가
+    # 새로운 공지를 notifications 및 user_notifications 테이블에 추가
     for notice in new_notices:
-        # add to notification table also.
         g.db.execute(
-            'INSERT INTO notifications (title, url) VALUES ( ?, ?)',
-            (notice['title'], notice['url'])
+            'INSERT INTO notifications (title, noti_url, noti_id) VALUES (?, ?, ?)',
+            (notice['metadata']['title'], notice['metadata']['url'], notice['id'])
         )
         g.db.execute(
-            'INSERT INTO user_notifications (user_id, noti_id, keyword_id, read, scrap) VALUES (?, ?, ?, ?, ?)',
+            'INSERT INTO user_notifications (user_id, noti_id, keyword_id, is_read, scrap) VALUES (?, ?, ?, ?, ?)',
             (user_id, notice['id'], keyword_id, 0, 0)  # 초기값으로 읽음과 스크랩을 0으로 설정
         )
     
@@ -208,10 +213,48 @@ def update_user_info():
 
     return jsonify({'msg': 'update success'}), 200
 
+@app.route('/user/schedule', methods=['POST'])
+@jwt_required()
+def get_events_notices_list():
+    user_id = get_jwt_identity()
+    if user_id is None:
+        return jsonify({'msg': 'missing user id'}), 400
+    
+    input_data = request.get_json()
+    event = input_data['title']
+
+    notices = pinecone_main(event)
+    matched_notices = notices["matches"]
+    data = []
+
+    for notice in matched_notices:
+        # Check if the notice already exists in the notifications table
+        existing_notice = g.db.execute(
+            'SELECT 1 FROM notifications WHERE noti_id = ?',
+            (notice['id'],)
+        ).fetchone()
+        
+        # If the notice does not exist, insert it into the notifications table
+        if not existing_notice:
+            g.db.execute(
+                'INSERT INTO notifications (title, noti_url, noti_id) VALUES (?, ?, ?)',
+                (notice['metadata']['title'], notice['metadata']['url'], notice['id'])
+            )
+            g.db.commit()
+        
+        data.append({
+            'noti_id': notice['id'],
+            'title': notice['metadata']['title'],
+            'url': notice['metadata']['url']
+        })
+    
+    return jsonify({'count': len(data), 'data': data, 'msg': "get schedule-related notices success"}), 200
+
 @app.route('/user/keyword', methods=['GET'])
 @jwt_required()
 def get_users_notices():
     is_new = False
+    is_read = False
     data = []
     user_id = get_jwt_identity()
     print("#"*50)
@@ -226,14 +269,13 @@ def get_users_notices():
         return jsonify({'msg': 'no keyword'}), 200
     # 각 키워드에 대해 반복하면서 데이터 추가
     for keyword in keywords:
-        print(keyword, keywords)
         # 여기서 keyword는 튜플(id, keyword, isCalendar)이므로 인덱스로 접근
         keyword_id = keyword[0]
         keyword_text = keyword[1]
         is_new |= update_notice_keyword_user(user_id, keyword_id, keyword_text)
-        data.append({'keyword': keyword_text, 'keywordid': keyword_id, 'new': is_new})
+        data.append({'keyword': keyword_text, 'keywordid': keyword_id, 'new': is_new, 'read' : is_new|is_read })
     
-    return jsonify({'count': len(keywords), 'data': data}), 200
+    return jsonify({'msg':"get registerd keyword success", 'count': len(keywords), 'data': data}), 200
 
 @app.route('/user/keyword', methods=['POST'])
 @jwt_required()
@@ -245,6 +287,7 @@ def register_keyword():
     if 'keyword' not in input_data:
         return jsonify({'msg': 'missing keyword'}), 400
     keyword = input_data['keyword']
+    print(keyword)
     if keyword is None:
         return jsonify({'msg': 'missing keyword'}), 400
     
@@ -256,8 +299,9 @@ def register_keyword():
     cursor = g.db.execute(
         'SELECT id FROM user_keywords WHERE user_id = ? AND keyword = ?',
         (user_id, keyword)
-    )
-    keyword_id = cursor.fetchone()[0]
+    ).fetchone()
+    keyword_id = cursor[0]
+    print(keyword_id)
     # 변경 사항을 DB에 커밋
     g.db.commit()
     
@@ -300,7 +344,7 @@ def get_users_scrap_notices():
             'url': url
         })
     
-    return jsonify({'count': len(data), 'data': data}), 200
+    return jsonify({'count': len(data), 'data': data, 'msg': "get scrap notice success"}), 200
 
 @app.route('/user/noti/<int:noticeid>', methods=['POST'])
 @jwt_required()
@@ -345,26 +389,26 @@ def get_notice_list(keyword_id):
     # 각 공지에 대해 제목과 URL을 가져와 리스트에 추가
     data = []
     for notice in notices:
-        noti_id = notice['noti_id']
+        noti_id = notice[0]
         title_row = g.db.execute(
-            'SELECT title, url FROM notice WHERE id = ?',
+            'SELECT title, noti_url FROM notifications WHERE noti_id = ?',
             (noti_id,)
         ).fetchone()
         
         # 제목과 URL이 없는 경우 기본값 설정 (예외 처리)
-        title = title_row['title'] if title_row else 'No title available'
-        url = title_row['url'] if title_row else 'No URL available'
+        title = title_row[0] if title_row else 'No title available'
+        url = title_row[1] if title_row else 'No URL available'
         
         # 결과 리스트에 추가
         data.append({
             'noti_id': noti_id,
-            'read': notice['read'],
-            'scrap': notice['scrap'],
+            'read': notice[1],
+            'scrap': notice[2],
             'title': title,
             'url': url
         })
     
-    return jsonify({'count': len(data), 'data': data}), 200
+    return jsonify({'count': len(data), 'data': data, 'msg':"get regist keyword notice success"}), 200
 
 @app.route('/user/<int:keywordid>', methods=['DELETE'])
 @jwt_required()
@@ -423,16 +467,22 @@ def get_chat():
     word = input_data['word']
     if word is None:
         return jsonify({'msg': 'missing word'}), 400
+    notices_url = []
+    for match in pinecone_main(word)["matches"] :
+        notices_url.append(match['metadata']['url'])
     from langchain.callbacks import get_openai_callback
     with get_openai_callback() as cb:
         response = qa_chain.run(word)
         # 토큰 사용량 출력 (옵션)
         print(f"토큰 사용량: {cb.total_tokens} (프롬프트: {cb.prompt_tokens}, 응답: {cb.completion_tokens})")
-
-    return jsonify({'response': response}), 200
+    if len(notices_url) != 0:
+        response += "\n관련 공지사항:"
+        for url in notices_url:
+            response += f"\n{url}"
+    return jsonify({'response': response, 'msg': "chat response success"}), 200
 
 ############## Flask App #####################
-app.config.from_object(config)
+app.config.from_object(config) 
 app.secret_key = os.urandom(24)
 init_db()
 
