@@ -483,18 +483,19 @@ def get_chat():
     word = input_data['word']
     if word is None:
         return jsonify({'msg': 'missing word'}), 400
-    notices_url = []
-    for match in pinecone_main(word)["matches"] :
-        notices_url.append(match['metadata']['url'])
     from langchain.callbacks import get_openai_callback
     with get_openai_callback() as cb:
         response = qa_chain.run(word)
         # 토큰 사용량 출력 (옵션)
         print(f"토큰 사용량: {cb.total_tokens} (프롬프트: {cb.prompt_tokens}, 응답: {cb.completion_tokens})")
+    notices_url = []
+    if response.strip().split('\n')[-1] == '관련 공지사항:':
+        for match in pinecone_main(word)["matches"] :
+            notices_url.append(match['metadata']['url'])
     if len(notices_url) != 0:
-        response += "\n관련 공지사항:"
-        for url in notices_url:
-            response += f"\n{url}"
+        for i,url in enumerate(notices_url):
+            if i == 3: break
+            response = response + "\n" + url
     return jsonify({'response': response, 'msg': "chat response success"}), 200
 
 ############## Flask App #####################
