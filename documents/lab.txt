@@ -1,0 +1,260 @@
+아래는 소프트웨어 대학원 랩실에 대한 정보다.
+
+고영중 교수 (Youngjoong Ko)
+자연어처리 연구실 (Natural Language Processing Laboratory)
+[연구주제]
+	•	Human-Computer Interaction
+	•	Machine Learning
+	•	Natural Language Processing
+	•	The Web & Information Retrieval
+	•	Text Mining
+
+구형준 교수 (Hyungjoon Koo)
+인공지능을 활용한 보안 연구실 (SecAI Laboratory)
+[연구주제]
+	•	Computer Security
+	•	Machine Learning
+	•	Software Engineering
+
+김광수 교수 (Kwangsu Kim)
+인공지능융합연구실 (Applied AI & Computer Vision Laboratory)
+[연구주제]
+	•	Computational Biology & Bioinformatics
+	•	Computer Vision
+	•	Economics & Computation
+	•	Human-Computer Interaction
+	•	Machine Learning
+
+김영훈 교수 (Younghoon Kim)
+네트워킹 시스템 연구실 (Networking System Laboratory)
+[연구주제]
+	•	Computer Networks
+	•	High-Performance Computing
+	•	Measurement & Performance Analysis
+	•	Operating Systems
+
+김유성 교수 (Yusung Kim)
+컴퓨터 시스템 & 인텔리전스 연구실 (Computer Systems & Intelligence Laboratory)
+[연구주제]
+	•	Computer Networks
+	•	Machine Learning
+	•	Mobile Computing
+	•	Robotics
+	•	Reinforcement Learning
+
+김형식 교수 (Hyoungshick Kim)
+보안공학연구실 (Security Laboratory)
+[연구주제]
+	•	Computer Networks
+	•	Computer Security
+	•	Cryptography
+	•	Human-Computer Interaction
+	•	Software Engineering
+
+남범석 교수 (Beomseok Nam)
+대용량 데이터 처리 연구실 (Data Intensive Computing Laboratory)
+[연구주제]
+	•	Computer Architecture
+	•	Databases
+	•	High-Performance Computing
+	•	Measurement & Performance Analysis
+	•	Operating Systems
+
+박진영 교수 (Jinyeong Bak)
+인간언어지능연구실 (Human Language Intelligence Laboratory)
+[연구주제]
+	•	Machine Learning
+	•	Natural Language Processing
+
+박호건 교수 (Hogun Park)
+기계학습-데이터마이닝 연구실 (Machine Learning and Data Mining Research Laboratory)
+[연구주제]
+	•	Machine Learning
+	•	Natural Language Processing
+	•	The Web & Information Retrieval
+
+서의성 교수 (Euiseong Seo)
+컴퓨터 시스템 연구실 (Computer Systems Laboratory)
+[연구주제]
+	•	Computer Architecture
+	•	Embedded & Real-Time Systems
+	•	High-Performance Computing
+	•	Mobile Computing
+	•	Operating Systems
+
+신동군 교수 (Dongkun Shin)
+지능형 임베디드 시스템 연구실 (Intelligent Embedded Systems Laboratory)
+[연구주제]
+	•	Computer Architecture
+	•	Embedded & Real-Time Systems
+	•	Machine Learning
+	•	Operating Systems
+
+엄영익 교수 (Young Ik Eom)
+분산컴퓨팅연구실 (Distributed Computing Laboratory)
+[연구주제]
+	•	Operating Systems
+	•	File Systems
+	•	Storage Systems
+	•	Virtualization
+	•	Distributed Computing
+
+우사이먼성일 교수 (Simon Sungil Woo)
+데이터 기반 융합 보안 연구실 (Data-driven AI Security HCI Laboratory)
+[연구주제]
+	•	Computer Security
+	•	Computer Vision
+	•	Machine Learning
+	•	Measurement & Performance Analysis
+	•	The Web & Information Retrieval
+
+우홍욱 교수 (Honguk Woo)
+CSI 연구실 (CSI: Computer System Intelligence Laboratory)
+[연구주제]
+	•	Embedded & Real-Time Systems
+	•	Machine Learning
+
+이성길 교수 (Sungkil Lee)
+컴퓨터 그래픽스 연구실 (Computer Graphics Laboratory)
+[연구주제]
+	•	Computer Graphics
+	•	Computer Vision
+	•	High-Performance Computing
+	•	Machine Learning
+	•	Visualization
+
+이은석 교수 (Eunseok Lee)
+소프트웨어공학연구실 (Software Engineering Laboratory)
+[연구주제]
+	•	Computer Science Education
+	•	Machine Learning
+	•	Programming Languages
+	•	Software Engineering
+
+이종욱 교수 (Jongwuk Lee)
+데이터지능및학습연구실 (Data Intelligence and Learning Laboratory)
+[연구주제]
+	•	Machine Learning
+	•	Natural Language Processing
+	•	The Web & Information Retrieval
+
+이지형 교수 (Jeehyong Lee)
+정보 및 지능 시스템 연구실 (Information & Intelligence System Laboratory)
+[연구주제]
+	•	Computer Vision
+	•	Machine Learning
+	•	Natural Language Processing
+	•	Deep Learning
+	•	Recommendation System
+
+이진규 교수 (Jinkyu Lee)
+실시간 컴퓨팅 연구실 (Real-Time Computing Laboratory)
+[연구주제]
+	•	Embedded & Real-Time Systems
+	•	Mobile Computing
+	•	Operating Systems
+	•	Battery/Energy-Aware Computing
+
+이한국 교수 (Hankook Lee)
+효율적 기계학습 연구실 (Efficient Learning Laboratory)
+[연구주제]
+	•	Computer Vision
+	•	Machine Learning
+
+이호준 교수 (Hojoon Lee)
+시스템 보안 연구실 (System Security Laboratory)
+[연구주제]
+	•	Computer Architecture
+	•	Computer Security
+	•	Operating Systems
+
+정윤경 교수 (Yungyung Cheong)
+지능적 서사 및 게임 연구실 (Intelligent Narrative & Game Laboratory)
+[연구주제]
+	•	Logic & Verification
+	•	Machine Learning
+	•	Natural Language Processing
+	•	Computational Models of Narrative
+
+정재훈 교수 (Jaehoon Jeong)
+사물인터넷 연구실 (Internet of Things Laboratory)
+[연구주제]
+	•	Algorithms & Complexity
+	•	Computer Networks
+	•	Computer Security
+	•	Mobile Computing
+
+조대호 교수 (Taeho Cho)
+모델링 시뮬레이션 연구실 (Modeling and Simulation Laboratory)
+[연구주제]
+	•	Computer Security
+	•	Modeling and Simulation
+
+조재민 교수 (Jaemin Jo)
+인터랙티브 데이터 컴퓨팅 연구실 (Interactive Data Computing Laboratory)
+[연구주제]
+	•	Human-Computer Interaction
+	•	Visualization
+
+조형민 교수 (Hyungmin Cho)
+컴퓨팅 플랫폼 연구실 (Computing Platforms Laboratory)
+[연구주제]
+	•	Computer Architecture
+	•	Computer Security
+	•	Embedded & Real-Time Systems
+	•	High-Performance Computing
+	•	Logic & Verification
+
+차수영 교수 (Sooyoung Cha)
+소프트웨어 분석 연구실 (Software Analysis Laboratory)
+[연구주제]
+	•	Programming Languages
+	•	Software Engineering
+
+최형기 교수 (Hyoungkee Choi)
+인터넷 보안 연구실 (Hacker’s In Intrusion Laboratory)
+[연구주제]
+	•	Computer Security
+	•	Networking Security
+
+추현승 교수 (Hyunseung Choo)
+수퍼인텔리전스 연구실 (Superintelligence Laboratory)
+[연구주제]
+	•	Computer Networks
+	•	Computer Vision
+	•	Human-Computer Interaction
+	•	Mobile Computing
+	•	Medical AI
+	•	Machine Learning
+
+타메르 교수 (Tamer Abuhmed)
+인포메이션 연구실 (Information Laboratory)
+[연구주제]
+	•	Computational Biology & Bioinformatics
+	•	Computer Security
+	•	Machine Learning
+	•	Programming Languages
+
+한환수 교수 (Hwansoo Han)
+컴퓨터시스템-인텔리전스 연구실 (Computer Systems Intelligence Laboratory)
+[연구주제]
+	•	Computer Architecture
+	•	High-Performance Computing
+	•	Machine Learning
+	•	Operating Systems
+	•	Programming Languages
+
+허재필 교수 (Jaepil Heo)
+비주얼컴퓨팅연구실 (Visual Computing Laboratory)
+[연구주제]
+	•	Computer Vision
+	•	Machine Learning
+	•	The Web & Information Retrieval
+
+황성재 교수 (Sungjae Hwang)
+소프트웨어 보안 연구실 (Software Security Laboratory)
+[연구주제]
+	•	Computer Security
+	•	Programming Languages
+	•	Software Engineering
+	•	Automotive Security
