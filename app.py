@@ -222,7 +222,25 @@ def get_events_notices_list():
     
     input_data = request.get_json()
     event = input_data['title']
+    # Check if the event matches any keyword with isCalendar = 1
+    matching_keyword = g.db.execute(
+        'SELECT id FROM user_keywords WHERE user_id = ? AND keyword = ? AND isCalendar = 1',
+        (user_id, event)
+    ).fetchone()
 
+    # If no matching keyword is found, insert the new event as a keyword
+    if not matching_keyword:
+        g.db.execute(
+            'INSERT INTO user_keywords (user_id, keyword, isCalendar) VALUES (?, ?, ?)',
+            (user_id, event, 1)
+        )
+        g.db.commit()
+        matching_keyword = g.db.execute(
+            'SELECT id FROM user_keywords WHERE user_id = ? AND keyword = ? AND isCalendar = 1',
+            (user_id, event)
+        ).fetchone()
+
+    keyword_id = matching_keyword[0]
     notices = pinecone_main(event)
     matched_notices = notices["matches"]
     data = []
@@ -257,9 +275,6 @@ def get_users_notices():
     is_read = False
     data = []
     user_id = get_jwt_identity()
-    print("#"*50)
-    print(user_id)
-    print("#"*50)
     if user_id is None:
         return jsonify({'msg': 'missing user id'}), 400
     
@@ -413,7 +428,7 @@ def get_notice_list(keyword_id):
 
 @app.route('/user/<int:keywordid>', methods=['DELETE'])
 @jwt_required()
-def delete_keyword():
+def delete_keyword(keywordid):
     user_id = get_jwt_identity()
     keyword_id = request.view_args['keywordid']
     if user_id is None:
@@ -438,9 +453,9 @@ def delete_keyword():
     return jsonify({'msg': 'delete success'}), 200
 
 
-@app.route('/user/<int:noticeid>', methods=['DELETE'])
+@app.route('/user/noti/<int:noticeid>', methods=['DELETE'])
 @jwt_required()
-def delete_notice():
+def delete_notice(noticeid):
     user_id = get_jwt_identity()
     notice_id = request.view_args['noticeid']
     if user_id is None:
