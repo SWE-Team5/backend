@@ -222,26 +222,9 @@ def get_events_notices_list():
     
     input_data = request.get_json()
     event = input_data['title']
-    # Check if the event matches any keyword with isCalendar = 1
-    matching_keyword = g.db.execute(
-        'SELECT id FROM user_keywords WHERE user_id = ? AND keyword = ? AND isCalendar = 1',
-        (user_id, event)
-    ).fetchone()
 
-    # If no matching keyword is found, insert the new event as a keyword
-    if not matching_keyword:
-        g.db.execute(
-            'INSERT INTO user_keywords (user_id, keyword, isCalendar) VALUES (?, ?, ?)',
-            (user_id, event, 1)
-        )
-        g.db.commit()
-        matching_keyword = g.db.execute(
-            'SELECT id FROM user_keywords WHERE user_id = ? AND keyword = ? AND isCalendar = 1',
-            (user_id, event)
-        ).fetchone()
-
-    keyword_id = matching_keyword[0]
     notices = pinecone_main(event)
+    
     matched_notices = notices["matches"]
     data = []
 
@@ -302,6 +285,7 @@ def register_keyword():
     if 'keyword' not in input_data:
         return jsonify({'msg': 'missing keyword'}), 400
     keyword = input_data['keyword']
+    is_calendar = input_data['is_calendar']
     print(keyword)
     if keyword is None:
         return jsonify({'msg': 'missing keyword'}), 400
@@ -309,7 +293,7 @@ def register_keyword():
     # user_keywords 테이블에 해당 유저와 키워드를 추가
     g.db.execute(
         'INSERT INTO user_keywords (user_id, keyword, isCalendar) VALUES (?, ?, ?)',
-        (user_id, keyword, 0)
+        (user_id, keyword, is_calendar)
     )
     cursor = g.db.execute(
         'SELECT id FROM user_keywords WHERE user_id = ? AND keyword = ?',
@@ -374,7 +358,28 @@ def scrap_notice(noticeid):
         return jsonify({'msg': 'missing notice id'}), 400
     
     # user_notifications 테이블에서 해당 유저와 공지의 스크랩 여부를 변경
+    existing_notice = g.db.execute(
+        'SELECT 1 FROM notifications WHERE noti_id = ?',
+        (notice_id,)
+    ).fetchone()
     
+    if not existing_notice:
+        print("#"*24)
+        g.db.execute(
+            'INSERT INTO notifications (title, noti_url, noti_id) VALUES (?, ?, ?)',
+            (input_data['title'], input_data['url'], notice_id)
+        )
+    
+    existing_user_notice = g.db.execute(
+        'SELECT 1 FROM user_notifications WHERE user_id = ? AND noti_id = ?',
+        (user_id, notice_id)
+    ).fetchone()
+    
+    if not existing_user_notice:
+        g.db.execute(
+            'INSERT INTO user_notifications (user_id, noti_id, keyword_id, is_read, scrap) VALUES (?, ?, ?, ?, ?)',
+            (user_id, notice_id, None, 0, is_scrap)
+        )
     g.db.execute(
         'UPDATE user_notifications SET scrap = ? WHERE user_id = ? AND noti_id = ?',
         (is_scrap, user_id, notice_id)
@@ -385,6 +390,38 @@ def scrap_notice(noticeid):
     
     # 스크랩 성공 메시지 반환
     return jsonify({'msg': 'scrap success'}), 200 
+
+@app.route('/user/noti/<int:noticeid>', methods=['PATCH'])
+@jwt_required()
+def read_notice(noticeid):
+    user_id = get_jwt_identity()
+    notice_id = noticeid
+    input_data = request.get_json()
+    is_read = input_data['update'] == "read"
+    if user_id is None:
+        return jsonify({'msg': 'missing user id'}), 400
+    if notice_id is None:
+        return jsonify({'msg': 'missing notice id'}), 400
+    
+    # user_notifications 테이블에서 해당 유저와 공지의 읽음 여부를 변경
+    existing_user_notice = g.db.execute(
+        'SELECT 1 FROM user_notifications WHERE user_id = ? AND noti_id = ?',
+        (user_id, notice_id)
+    ).fetchone()
+    
+    if not existing_user_notice:
+        return jsonify({'msg': 'notice not found'}), 400
+    
+    g.db.execute(
+        'UPDATE user_notifications SET is_read = ? WHERE user_id = ? AND noti_id = ?',
+        (is_read, user_id, notice_id)
+    )
+    
+    # 변경 사항을 DB에 커밋
+    g.db.commit()
+    
+    # 읽음 여부 변경 성공 메시지 반환
+    return jsonify({'msg': 'read success'}), 200
 
 @app.route('/user/<int:keyword_id>', methods=['GET'])
 @jwt_required()

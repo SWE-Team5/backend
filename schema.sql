@@ -40,10 +40,11 @@ DROP TABLE IF EXISTS user_notifications;
 CREATE TABLE user_notifications (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,
-  noti_id INTEGER NOT NULL UNIQUE,
+  noti_id INTEGER NOT NULL,
   keyword_id INTEGER NULL,
   is_read INTEGER NOT NULL,  -- BOOLEAN 대체 (0과 1)
-  scrap INTEGER NOT NULL,  -- BOOLEAN 대체 (0과 1)
+  scrap INTEGER NOT NULL,  -- BOOLEAN 대체 (0과 1),
+  UNIQUE(noti_id, keyword_id)
   FOREIGN KEY (user_id) REFERENCES user (id),
   FOREIGN KEY (noti_id) REFERENCES notifications (id),
   FOREIGN KEY (keyword_id) REFERENCES user_keywords (id)
