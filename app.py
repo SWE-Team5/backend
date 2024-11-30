@@ -224,14 +224,14 @@ def get_events_notices_list():
     event = input_data['title']
 
     notices = pinecone_main(event)
-    
+
     matched_notices = notices["matches"]
     data = []
 
     for notice in matched_notices:
         # Check if the notice already exists in the notifications table
         existing_notice = g.db.execute(
-            'SELECT 1 FROM notifications WHERE noti_id = ?',
+            'SELECT * FROM notifications WHERE noti_id = ?',
             (notice['id'],)
         ).fetchone()
         
@@ -240,6 +240,10 @@ def get_events_notices_list():
             g.db.execute(
                 'INSERT INTO notifications (title, noti_url, noti_id) VALUES (?, ?, ?)',
                 (notice['metadata']['title'], notice['metadata']['url'], notice['id'])
+            )
+            g.db.execute(
+                'INSERT INTO user_notifications (user_id, noti_id, keyword_id, is_read, scrap) VALUES (?, ?, ?, ?, ?)',
+                (user_id, notice['id'], None, 0, 0)
             )
             g.db.commit()
         
