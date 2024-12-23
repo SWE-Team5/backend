@@ -1,2 +1,3 @@
 ./__pycache__/
 ./VDB/notice/finetuned-kr-sbert-notice/
+.env
