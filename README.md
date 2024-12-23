@@ -5,4 +5,4 @@ flask기반의 backend
 2. 파이썬 가상환경 설치
 3. pip install -r requirements.txt 실행
 4. python3 app.py 실행
-5. 만약 특정 모듈이 설치가 안되어 있다면 pip install로 설치되지 않았다고 나오는 모듈 직접 설치.
+5. 만약 특정 모듈이 설치가 안되어 있다면 pip install로 설치되지 않았다고 나오는 모듈 직접 설치 (app.py 실행해가면서 하나씩 다 설치해야함)
